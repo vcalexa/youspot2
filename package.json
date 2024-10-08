@@ -1,0 +1,13 @@
+{
+  "name": "spotify-youtube-transfer",
+  "version": "1.0.0",
+  "description": "Spotify to YouTube Music playlist transfer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^2.0.1"
+  }
+}

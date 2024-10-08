@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify to YouTube Music Transfer</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function App() {
+            const [user, setUser] = React.useState(null);
+            const [playlists, setPlaylists] = React.useState([]);
+            const [selectedPlaylist, setSelectedPlaylist] = React.useState('');
+            const [transferMessage, setTransferMessage] = React.useState('');
+
+            React.useEffect(() => {
+                fetch('/user')
+                    .then(response => response.json())
+                    .then(data => setUser(data))
+                    .catch(() => setUser(null));
+            }, []);
+
+            React.useEffect(() => {
+                if (user) {
+                    fetch('/api/playlists')
+                        .then(response => response.json())
+                        .then(data => setPlaylists(data));
+                }
+            }, [user]);
+
+            const handleTransfer = () => {
+                setTransferMessage('Transferring playlist...');
+                fetch(`/api/transfer?playlistId=${selectedPlaylist}`, { method: 'POST' })
+                    .then(response => response.text())
+                    .then(message => setTransferMessage(message));
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-green-400 to-blue-500 flex flex-col items-center justify-center p-4">
+                    <h1 className="text-4xl font-bold text-white mb-8">Spotify to YouTube Music Transfer</h1>
+                    <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+                        {!user ? (
+                            <div>
+                                <h2 className="text-2xl font-bold text-center mb-6">Login to Start</h2>
+                                <a href="/oauth2/authorization/spotify" className="block w-full bg-green-500 text-white text-center font-semibold py-2 px-4 rounded-md hover:bg-green-600 mb-4">
+                                    Login with Spotify
+                                </a>
+                                <a href="/oauth2/authorization/google" className="block w-full bg-red-500 text-white text-center font-semibold py-2 px-4 rounded-md hover:bg-red-600">
+                                    Login with Google
+                                </a>
+                            </div>
+                        ) : (
+                            <div>
+                                <h2 className="text-2xl font-bold text-center mb-6">Transfer Playlist</h2>
+                                <p className="text-center mb-4">Welcome, {user.name}!</p>
+                                <select
+                                    value={selectedPlaylist}
+                                    onChange={(e) => setSelectedPlaylist(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                                >
+                                    <option value="">Select a Spotify playlist</option>
+                                    {playlists.map(playlist => (
+                                        <option key={playlist.id} value={playlist.id}>{playlist.name}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    onClick={handleTransfer}
+                                    disabled={!selectedPlaylist}
+                                    className="w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Transfer to YouTube Music
+                                </button>
+                                {transferMessage && (
+                                    <p className="text-center text-green-600 font-semibold mt-4">{transferMessage}</p>
+                                )}
+                                <a href="/logout" className="block text-center text-blue-500 hover:text-blue-700 mt-4">Logout</a>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
